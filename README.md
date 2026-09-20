@@ -1,5 +1,7 @@
 # RGB 像素混色密碼產生器 (RGB Pixel Blending Cipher Tool)
 
+[![RGB Pixel Blending Cipher Tool Preview](og-preview.png)](https://ericlin241.github.io/rgb-pixel-blending-cipher/)
+
 ![License](https://img.shields.io/badge/License-MIT-emerald.svg)
 ![Type](https://img.shields.io/badge/Algorithm-Pixel--CBC%20Mode-cyan.svg)
 ![Frontend](https://img.shields.io/badge/Frontend-HTML5%20%2B%20TailwindCSS%20%2B%20JS-blue.svg)
