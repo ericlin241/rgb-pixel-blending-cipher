@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RGB 像素混色密碼產生器 | RGB Pixel Blending Cipher Tool</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+            },
+            cyber: {
+              bg: '#0a0f1d',
+              card: '#111827',
+              border: '#1f293d',
+              input: '#151e33',
+            }
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 25%),
+                  radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 25%),
+                  #0a0f1d;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0d1322;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #25334d;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3b82f6;
+    }
+    .glass-panel {
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.25);
+    }
+    .glow-emerald {
+      box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
+    }
+  </style>
+</head>
+<body class="text-slate-200 min-h-screen flex flex-col antialiased selection:bg-emerald-500/30 selection:text-emerald-200">
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-900/95 border border-emerald-500/40 text-emerald-300 shadow-2xl shadow-emerald-950">
+    <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>
+    <span id="toast-msg" class="text-sm font-medium">已複製到剪貼簿</span>
+  </div>
+
+  <!-- Header -->
+  <header class="border-b border-slate-800/80 bg-slate-950/70 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 via-emerald-500 to-blue-500 p-[2px] shadow-lg shadow-emerald-500/10">
+          <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+            <i data-lucide="palette" class="w-5 h-5 text-emerald-400"></i>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+              RGB 像素混色密碼產生器
+              <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">v1.0 Pixel-CBC</span>
+            </h1>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">RGB Pixel Blending Cipher with Modular Permutation & CBC Chaining</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Key Info Badge -->
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700/60 text-xs font-mono text-slate-300">
+          <span class="text-slate-400">初始金鑰:</span>
+          <span class="text-rose-400 font-bold">K_R=3</span>
+          <span class="text-slate-600">|</span>
+          <span class="text-emerald-400 font-bold">K_G=7</span>
+          <span class="text-slate-600">|</span>
+          <span class="text-sky-400 font-bold">K_B=12</span>
+        </div>
+
+        <a href="#algorithm-modal" onclick="openAlgoInfo()" class="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors border border-slate-700/60 text-xs flex items-center gap-1.5" title="演算法規格">
+          <i data-lucide="book-open" class="w-4 h-4 text-slate-400"></i>
+          <span class="hidden md:inline">原理規格</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Mode Selector & Quick Fill Bar -->
+    <div class="glass-panel rounded-2xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <!-- Mode Tabs -->
+      <div class="flex rounded-xl bg-slate-950 p-1 border border-slate-800">
+        <button id="btn-mode-enc" onclick="switchMode('encrypt')" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
+          <i data-lucide="lock" class="w-4 h-4"></i>
+          <span>加密模式 (Encrypt)</span>
+        </button>
+        <button id="btn-mode-dec" onclick="switchMode('decrypt')" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-200">
+          <i data-lucide="unlock" class="w-4 h-4"></i>
+          <span>解密模式 (Decrypt)</span>
+        </button>
+      </div>
+
+      <!-- Quick Fill Buttons -->
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <span class="text-slate-400 flex items-center gap-1 mr-1">
+          <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>測試範例:</span>
+        </span>
+        <button onclick="applySample('SPY')" class="px-2.5 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700/80 text-slate-300 font-mono transition-colors">
+          範例 1: <strong class="text-white">SPY</strong> <span class="text-slate-400">(短單字)</span>
+        </button>
+        <button onclick="applySample('ATTACK')" class="px-2.5 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700/80 text-slate-300 font-mono transition-colors">
+          範例 2: <strong class="text-white">ATTACK</strong> <span class="text-slate-400">(標準 6 字)</span>
+        </button>
+        <button onclick="applySample('SECURITY')" class="px-2.5 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700/80 text-slate-300 font-mono transition-colors">
+          範例 3: <strong class="text-white">SECURITY</strong> <span class="text-amber-400">(需填充 8 字)</span>
+        </button>
+        <button onclick="clearInput()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-900/30 hover:border-rose-700/50 border border-slate-700 text-slate-400 hover:text-rose-300 transition-colors" title="清除內容">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Dual Input / Output Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- Left: Input Card -->
+      <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between space-y-4">
+        <div>
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div class="flex items-center gap-2">
+              <span id="input-badge" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <h2 id="input-label" class="text-sm font-semibold text-white tracking-wide uppercase">明文輸入 (Plaintext)</h2>
+            </div>
+            <span id="input-meta-info" class="text-xs font-mono text-slate-400">0 字元 | 0 區塊</span>
+          </div>
+
+          <!-- Textarea -->
+          <div class="mt-4 relative">
+            <textarea id="text-input" rows="4" placeholder="請在此輸入英文明文（例如 ATTACK、SECURITY 等）..."
+              class="w-full bg-slate-950/90 text-white font-mono text-base sm:text-lg tracking-wider rounded-xl p-4 border border-slate-700/80 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all uppercase resize-y placeholder:text-slate-600 placeholder:normal-case"></textarea>
+          </div>
+
+          <!-- Sanitization & Padding Live Alert -->
+          <div id="sanitize-alert" class="mt-2.5 flex items-center justify-between text-xs px-3 py-2 rounded-lg bg-slate-900/80 border border-slate-800 text-slate-400 font-mono">
+            <div class="flex items-center gap-1.5">
+              <i data-lucide="info" class="w-3.5 h-3.5 text-sky-400"></i>
+              <span id="sanitize-text">已自動過濾非英文字母並轉為大寫</span>
+            </div>
+            <div id="padding-indicator" class="text-emerald-400 font-medium">無需填充</div>
+          </div>
+
+          <!-- Error Alert for Decryption -->
+          <div id="error-alert" class="mt-2.5 hidden text-xs px-3.5 py-2.5 rounded-lg bg-rose-950/50 border border-rose-600/50 text-rose-300 font-mono flex items-start gap-2">
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"></i>
+            <div>
+              <strong class="font-bold">密文長度錯誤：</strong>
+              <span id="error-msg">密文長度必須為 3 的倍數（RGB 通道分組）。目前字元數為 0。</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input Actions -->
+        <div class="flex items-center justify-between pt-2 border-t border-slate-800/60 text-xs text-slate-400">
+          <span class="flex items-center gap-1.5">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>支援即時響應計算</span>
+          </span>
+          <button id="btn-swap-to-other" onclick="swapInputWithOutput()" class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors border border-slate-700">
+            <i data-lucide="arrow-right-left" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>轉移至另一模式驗證</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: Output Card -->
+      <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between space-y-4">
+        <div>
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div class="flex items-center gap-2">
+              <span id="output-badge" class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+              <h2 id="output-label" class="text-sm font-semibold text-white tracking-wide uppercase">加密密文 (Ciphertext)</h2>
+            </div>
+            <span id="output-meta-info" class="text-xs font-mono text-slate-400">0 字母</span>
+          </div>
+
+          <!-- Output Display Box -->
+          <div class="mt-4 relative group">
+            <div id="text-output" class="w-full min-h-[114px] bg-slate-950/90 text-emerald-300 font-mono text-lg sm:text-xl font-bold tracking-widest rounded-xl p-4 border border-slate-700/80 break-all flex items-center justify-start">
+              <span class="text-slate-600 font-normal text-sm select-none">運算結果將在此即時顯示...</span>
+            </div>
+            <!-- Quick Copy Button on hover -->
+            <button onclick="copyOutput()" class="absolute top-3 right-3 px-3 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs flex items-center gap-1.5 transition-all shadow-md">
+              <i data-lucide="copy" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>複製結果</span>
+            </button>
+          </div>
+
+          <!-- Padding Notice in Decryption Mode -->
+          <div id="decrypt-padding-notice" class="mt-2.5 hidden text-xs px-3 py-2 rounded-lg bg-amber-950/40 border border-amber-600/40 text-amber-300 font-mono flex items-center gap-2">
+            <i data-lucide="help-circle" class="w-4 h-4 text-amber-400 shrink-0"></i>
+            <span id="decrypt-padding-text">偵測到末端存在填充字元 'X'。可能為加密時自動補齊的字元。</span>
+          </div>
+
+          <!-- Visual Block Grouping (Chunked display: [ATT] [ACK]) -->
+          <div class="mt-3">
+            <span class="text-[11px] uppercase tracking-wider text-slate-400 font-medium">區塊分組檢視 (3-Letter RGB Blocks):</span>
+            <div id="block-chunks-display" class="mt-1 flex flex-wrap gap-1.5 font-mono text-xs text-slate-300">
+              <span class="text-slate-600 italic">無分組資料</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Output Action Bar -->
+        <div class="flex items-center justify-between pt-2 border-t border-slate-800/60 text-xs">
+          <span id="output-stat-str" class="text-slate-400 font-mono">CBC 狀態: 正常</span>
+          <div class="flex items-center gap-2">
+            <button onclick="copyAuditJSON()" class="px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1 transition-colors" title="複製完整計算 JSON">
+              <i data-lucide="file-json" class="w-3.5 h-3.5 text-cyan-400"></i>
+              <span>JSON 審計資料</span>
+            </button>
+            <button onclick="copyOutput()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 transition-all">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <span>複製輸出</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visual Color Palettes (Pixel Palette Canvas) -->
+    <section class="glass-panel rounded-2xl p-5 space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-rose-500 via-emerald-500 to-sky-500 p-0.5">
+            <div class="w-full h-full bg-slate-900 rounded-[6px] flex items-center justify-center">
+              <i data-lucide="paint-brush" class="w-4 h-4 text-emerald-400"></i>
+            </div>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              視覺化像素混色長條 (Pixel Palette Canvas)
+            </h2>
+            <p class="text-xs text-slate-400">每組 3 字母映射為 1 個 RGB 像素點：<span class="font-mono text-emerald-300">RGB(R×10, G×10, B×10)</span></p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="exportCanvasImage()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-1.5 transition-colors">
+            <i data-lucide="download" class="w-3.5 h-3.5 text-sky-400"></i>
+            <span>匯出像素色條 PNG</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Comparison Palette Bars -->
+      <div class="space-y-5">
+        <!-- Top Palette: Plaintext -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold text-slate-300 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+              <span id="palette-label-1">明文原色條 (Plaintext Original Palette)</span>
+            </span>
+            <span class="text-slate-400 font-mono text-[11px]">通道對應: (Letter 1, Letter 2, Letter 3) → (R, G, B)</span>
+          </div>
+
+          <!-- Continuous Bar Preview -->
+          <div class="relative h-10 w-full rounded-xl overflow-hidden border border-slate-700/80 bg-slate-950 flex items-center shadow-inner" id="canvas-container-1">
+            <div id="palette-strip-1" class="w-full h-full flex transition-all">
+              <div class="w-full h-full flex items-center justify-center text-xs text-slate-600 italic">尚無色塊資料</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CBC Chaining Arrow Indicator -->
+        <div class="flex items-center justify-center -my-2 relative z-10">
+          <div class="px-3 py-1 rounded-full bg-slate-900 border border-slate-700/80 text-[11px] text-slate-400 flex items-center gap-1.5 shadow-lg">
+            <i data-lucide="shuffle" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span id="cbc-flow-label">通道置換模運算 + CBC 像素連鎖反饋混色</span>
+            <i data-lucide="arrow-down" class="w-3 h-3 text-emerald-400"></i>
+          </div>
+        </div>
+
+        <!-- Bottom Palette: Ciphertext -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold text-slate-300 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span id="palette-label-2">加密混色條 (Ciphertext Blended Palette)</span>
+            </span>
+            <span class="text-slate-400 font-mono text-[11px]">加密混色效應：前塊輸出遞迴影響後塊色彩</span>
+          </div>
+
+          <!-- Continuous Bar Preview -->
+          <div class="relative h-10 w-full rounded-xl overflow-hidden border border-slate-700/80 bg-slate-950 flex items-center shadow-inner" id="canvas-container-2">
+            <div id="palette-strip-2" class="w-full h-full flex transition-all">
+              <div class="w-full h-full flex items-center justify-center text-xs text-slate-600 italic">尚無色塊資料</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Interactive Block Color Cards Grid -->
+      <div class="pt-3 border-t border-slate-800/80">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider">區塊色彩與通道詳細分解 (Interactive Block Swatches):</h3>
+          <span class="text-[11px] text-slate-400">點擊色票可直接複製 HEX 色碼</span>
+        </div>
+        <div id="swatch-cards-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+          <!-- Populated by JS -->
+          <div class="col-span-full py-8 text-center text-xs text-slate-500 italic">請輸入文字以查看各區塊色彩細節</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step-by-step Audit Table -->
+    <section class="glass-panel rounded-2xl p-5 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+            <i data-lucide="calculator" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              密碼運算審計清單 (Step-by-step Audit Table)
+            </h2>
+            <p class="text-xs text-slate-400">詳細揭露每一區塊的通道代數公式、模 26 運算過程與連鎖前饋偏移量</p>
+          </div>
+        </div>
+
+        <div class="text-xs text-slate-400 font-mono flex items-center gap-2">
+          <span class="px-2 py-1 rounded bg-slate-900 border border-slate-800">A=0 ... Z=25</span>
+          <span class="px-2 py-1 rounded bg-slate-900 border border-slate-800">Modulo 26</span>
+        </div>
+      </div>
+
+      <!-- Table Wrapper -->
+      <div class="overflow-x-auto rounded-xl border border-slate-800">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-950/80 text-slate-300 uppercase font-mono tracking-wider border-b border-slate-800">
+              <th class="py-3 px-3 w-16 text-center">區塊</th>
+              <th class="py-3 px-4 w-28">輸入字母</th>
+              <th class="py-3 px-4 w-32">通道數值 (R, G, B)</th>
+              <th class="py-3 px-4 w-40">前饋連鎖 (Offset)</th>
+              <th class="py-3 px-4 min-w-[320px]">套用公式與模 26 展開步驟</th>
+              <th class="py-3 px-4 w-28 text-center">輸出字母</th>
+              <th class="py-3 px-4 w-36 text-center">實體 RGB 色彩</th>
+            </tr>
+          </thead>
+          <tbody id="audit-table-body" class="divide-y divide-slate-800/60 font-mono">
+            <tr>
+              <td colspan="7" class="py-8 text-center text-slate-500 italic">尚未進行運算</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Mathematical Formula & Cryptographic Architecture Spec Card -->
+    <section class="glass-panel rounded-2xl p-5 space-y-4">
+      <div class="flex items-center gap-2.5 pb-3 border-b border-slate-800">
+        <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
+          <i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i>
+        </div>
+        <h2 class="text-base font-bold text-white">密碼核心演算法數學規格說明</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-300">
+        <!-- Encryption Spec -->
+        <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-emerald-400 flex items-center gap-1.5 text-sm">
+              <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+              <span>像素連鎖加密 (Pixel-CBC Encryption)</span>
+            </h3>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-800/40">正向擴散</span>
+          </div>
+          <p class="text-slate-400 leading-relaxed">
+            每 3 字母映射為通道 <code class="text-emerald-300 font-mono">(R_n, G_n, B_n)</code>。第 1 組無偏移；第 <code class="text-emerald-300 font-mono">n &gt; 1</code> 組引入前一塊密文作為連鎖偏移向量：
+          </p>
+          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80 font-mono text-slate-200 space-y-1">
+            <div><strong class="text-rose-400">R'_n</strong> = (G_n + K_R + R'_{n-1}) mod 26</div>
+            <div><strong class="text-emerald-400">G'_n</strong> = (B_n + K_G + G'_{n-1}) mod 26</div>
+            <div><strong class="text-sky-400">B'_n</strong> = (25 - R_n + K_B + B'_{n-1}) mod 26</div>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            * 濾鏡金鑰固定值：<code class="text-slate-200 font-mono">K_R = 3, K_G = 7, K_B = 12</code>。<br>
+            * 通道發生錯位輪替（G→R'、B→G'、互補R→B'），大幅加強非線性混淆（Confusion）。
+          </p>
+        </div>
+
+        <!-- Decryption Spec -->
+        <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-cyan-400 flex items-center gap-1.5 text-sm">
+              <i data-lucide="unlock" class="w-3.5 h-3.5"></i>
+              <span>逆向連鎖解密 (Pixel-CBC Decryption)</span>
+            </h3>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-cyan-950/60 text-cyan-300 border border-cyan-800/40">代數逆運算</span>
+          </div>
+          <p class="text-slate-400 leading-relaxed">
+            對密文區塊 <code class="text-cyan-300 font-mono">(R'_n, G'_n, B'_n)</code>，利用前一塊密文偏移（n=1 時偏移為 0）進行代數還原：
+          </p>
+          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80 font-mono text-slate-200 space-y-1">
+            <div><strong class="text-rose-400">R_n</strong> = (25 - B'_n + K_B + offset_B) mod 26</div>
+            <div><strong class="text-emerald-400">G_n</strong> = (R'_n - K_R - offset_R + 52) mod 26</div>
+            <div><strong class="text-sky-400">B_n</strong> = (G'_n - K_G - offset_G + 52) mod 26</div>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            * 加上 52 確保在模 26 下所有減法運算皆為非負整數。<br>
+            * 密文長度必須為 3 的倍數，結尾填充的 'X' 會被完整還原並提醒。
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/80 bg-slate-950/70 py-4 mt-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span>RGB Pixel Blending Cipher Tool</span>
+        <span>•</span>
+        <span class="text-slate-400">密碼學與前端可視化實驗室</span>
+      </div>
+      <div class="font-mono text-[11px] text-slate-400">
+        HTML5 • Tailwind CSS • Modular Arithmetic • CBC Chaining
+      </div>
+    </div>
+  </footer>
+
+  <!-- Hidden Canvas for PNG Export -->
+  <canvas id="export-canvas" class="hidden"></canvas>
+
+  <!-- Core JavaScript Logic -->
+  <script>
+    // State management
+    const state = {
+      mode: 'encrypt', // 'encrypt' | 'decrypt'
+      key: {
+        r: 3,
+        g: 7,
+        b: 12
+      },
+      auditLog: [],
+      currentInput: '',
+      currentOutput: ''
+    };
+
+    // DOM Elements
+    const elements = {
+      btnModeEnc: document.getElementById('btn-mode-enc'),
+      btnModeDec: document.getElementById('btn-mode-dec'),
+      textInput: document.getElementById('text-input'),
+      textOutput: document.getElementById('text-output'),
+      inputLabel: document.getElementById('input-label'),
+      outputLabel: document.getElementById('output-label'),
+      inputBadge: document.getElementById('input-badge'),
+      outputBadge: document.getElementById('output-badge'),
+      inputMetaInfo: document.getElementById('input-meta-info'),
+      outputMetaInfo: document.getElementById('output-meta-info'),
+      sanitizeAlert: document.getElementById('sanitize-alert'),
+      sanitizeText: document.getElementById('sanitize-text'),
+      paddingIndicator: document.getElementById('padding-indicator'),
+      errorAlert: document.getElementById('error-alert'),
+      errorMsg: document.getElementById('error-msg'),
+      decryptPaddingNotice: document.getElementById('decrypt-padding-notice'),
+      decryptPaddingText: document.getElementById('decrypt-padding-text'),
+      blockChunksDisplay: document.getElementById('block-chunks-display'),
+      outputStatStr: document.getElementById('output-stat-str'),
+      paletteLabel1: document.getElementById('palette-label-1'),
+      paletteLabel2: document.getElementById('palette-label-2'),
+      paletteStrip1: document.getElementById('palette-strip-1'),
+      paletteStrip2: document.getElementById('palette-strip-2'),
+      swatchCardsContainer: document.getElementById('swatch-cards-container'),
+      auditTableBody: document.getElementById('audit-table-body'),
+      exportCanvas: document.getElementById('export-canvas'),
+      toast: document.getElementById('toast'),
+      toastMsg: document.getElementById('toast-msg'),
+      cbcFlowLabel: document.getElementById('cbc-flow-label')
+    };
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      // Setup event listener
+      elements.textInput.addEventListener('input', () => {
+        handleInputChange();
+      });
+      // Load default sample ATTACK
+      applySample('ATTACK');
+    });
+
+    // Switch between Encrypt & Decrypt mode
+    function switchMode(newMode) {
+      if (state.mode === newMode) return;
+      state.mode = newMode;
+
+      if (newMode === 'encrypt') {
+        elements.btnModeEnc.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 bg-emerald-600 text-white shadow-lg shadow-emerald-600/30";
+        elements.btnModeDec.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-200";
+        
+        elements.inputLabel.innerText = "明文輸入 (Plaintext)";
+        elements.outputLabel.innerText = "加密密文 (Ciphertext)";
+        elements.inputBadge.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
+        elements.outputBadge.className = "w-2.5 h-2.5 rounded-full bg-cyan-400";
+        elements.textInput.placeholder = "請在此輸入英文明文（例如 ATTACK、SECURITY 等）...";
+        
+        elements.paletteLabel1.innerText = "明文原色條 (Plaintext Original Palette)";
+        elements.paletteLabel2.innerText = "加密混色條 (Ciphertext Blended Palette)";
+        elements.cbcFlowLabel.innerText = "通道置換模運算 + CBC 像素連鎖反饋混色";
+      } else {
+        elements.btnModeDec.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 bg-cyan-600 text-white shadow-lg shadow-cyan-600/30";
+        elements.btnModeEnc.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-200";
+        
+        elements.inputLabel.innerText = "密文輸入 (Ciphertext)";
+        elements.outputLabel.innerText = "還原明文 (Restored Plaintext)";
+        elements.inputBadge.className = "w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse";
+        elements.outputBadge.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+        elements.textInput.placeholder = "請在此輸入密文字串（長度需為 3 的倍數，例如 WALBRW）...";
+        
+        elements.paletteLabel1.innerText = "密文混色條 (Ciphertext Palette)";
+        elements.paletteLabel2.innerText = "還原明文條 (Restored Plaintext Palette)";
+        elements.cbcFlowLabel.innerText = "逆向解鎖代數運算 + CBC 偏移消除";
+      }
+
+      handleInputChange();
+    }
+
+    // Apply quick fill samples
+    function applySample(text) {
+      if (state.mode === 'decrypt') {
+        switchMode('encrypt');
+      }
+      elements.textInput.value = text;
+      handleInputChange();
+      showToast(`已載入測試範例 "${text}"`);
+    }
+
+    // Clear input
+    function clearInput() {
+      elements.textInput.value = '';
+      handleInputChange();
+      showToast('已清空輸入欄位');
+    }
+
+    // Swap output into input (e.g. encrypt -> swap to test decrypt)
+    function swapInputWithOutput() {
+      if (!state.currentOutput) {
+        showToast('目前尚無輸出可供轉移', true);
+        return;
+      }
+      const outputText = state.currentOutput;
+      const targetMode = state.mode === 'encrypt' ? 'decrypt' : 'encrypt';
+      switchMode(targetMode);
+      elements.textInput.value = outputText;
+      handleInputChange();
+      showToast(`已切換為${targetMode === 'encrypt' ? '加密' : '解密'}模式並帶入字串`);
+    }
+
+    // Main calculation handler
+    function handleInputChange() {
+      const rawText = elements.textInput.value;
+      state.currentInput = rawText;
+
+      // Filter only A-Z
+      const cleanLetters = rawText.toUpperCase().replace(/[^A-Z]/g, '');
+
+      if (state.mode === 'encrypt') {
+        processEncryption(cleanLetters, rawText);
+      } else {
+        processDecryption(cleanLetters, rawText);
+      }
+      lucide.createIcons();
+    }
+
+    // Convert char to 0~25
+    function charToVal(char) {
+      return char.charCodeAt(0) - 65;
+    }
+
+    // Convert 0~25 to char
+    function valToChar(val) {
+      const normalized = ((val % 26) + 26) % 26;
+      return String.fromCharCode(normalized + 65);
+    }
+
+    // To RGB Color String: RGB(val * 10, val * 10, val * 10)
+    function toRGB(r, g, b) {
+      return {
+        r: r * 10,
+        g: g * 10,
+        b: b * 10,
+        css: `rgb(${r * 10}, ${g * 10}, ${b * 10})`,
+        hex: `#${((1 << 24) + (r * 10 << 16) + (g * 10 << 8) + (b * 10)).toString(16).slice(1).toUpperCase()}`
+      };
+    }
+
+    // Process Encryption
+    function processEncryption(cleanLetters, rawText) {
+      elements.errorAlert.classList.add('hidden');
+      elements.decryptPaddingNotice.classList.add('hidden');
+      elements.sanitizeAlert.classList.remove('hidden');
+
+      if (!cleanLetters) {
+        resetOutputs();
+        elements.inputMetaInfo.innerText = "0 字元 | 0 區塊";
+        elements.paddingIndicator.innerText = "無輸入";
+        elements.paddingIndicator.className = "text-slate-500";
+        return;
+      }
+
+      // Calculate Padding
+      const remainder = cleanLetters.length % 3;
+      const padCount = remainder === 0 ? 0 : 3 - remainder;
+      const paddedLetters = cleanLetters + 'X'.repeat(padCount);
+      const blockCount = paddedLetters.length / 3;
+
+      // Update UI stats
+      elements.inputMetaInfo.innerText = `${cleanLetters.length} 字母 | ${blockCount} 區塊`;
+      if (padCount > 0) {
+        elements.paddingIndicator.innerText = `補填 +${padCount} 個 'X' (${paddedLetters})`;
+        elements.paddingIndicator.className = "text-amber-400 font-bold";
+      } else {
+        elements.paddingIndicator.innerText = "整除 (無需填充)";
+        elements.paddingIndicator.className = "text-emerald-400 font-medium";
+      }
+
+      // Encrypt Blocks
+      let cipherText = '';
+      let prevCipher = [0, 0, 0];
+      const auditRows = [];
+      const plainPalettes = [];
+      const cipherPalettes = [];
+      const chunks = [];
+
+      for (let i = 0; i < blockCount; i++) {
+        const blockIdx = i + 1;
+        const bChars = paddedLetters.slice(i * 3, i * 3 + 3);
+        chunks.push(bChars);
+
+        const r_in = charToVal(bChars[0]);
+        const g_in = charToVal(bChars[1]);
+        const b_in = charToVal(bChars[2]);
+
+        const plainColor = toRGB(r_in, g_in, b_in);
+        plainPalettes.push({
+          blockIdx,
+          chars: bChars,
+          rgb: plainColor,
+          vals: [r_in, g_in, b_in]
+        });
+
+        // Calculate formulas
+        let r_out, g_out, b_out;
+        let r_step, g_step, b_step;
+        let offsetUsed;
+
+        if (blockIdx === 1) {
+          offsetUsed = [0, 0, 0];
+          r_out = (g_in + state.key.r) % 26;
+          g_out = (b_in + state.key.g) % 26;
+          b_out = (25 - r_in + state.key.b) % 26;
+
+          r_step = `(${g_in} + ${state.key.r}) mod 26 = ${g_in + state.key.r} mod 26 = ${r_out} (${valToChar(r_out)})`;
+          g_step = `(${b_in} + ${state.key.g}) mod 26 = ${b_in + state.key.g} mod 26 = ${g_out} (${valToChar(g_out)})`;
+          b_step = `(25 - ${r_in} + ${state.key.b}) mod 26 = ${25 - r_in + state.key.b} mod 26 = ${b_out} (${valToChar(b_out)})`;
+        } else {
+          offsetUsed = [...prevCipher];
+          r_out = (g_in + state.key.r + offsetUsed[0]) % 26;
+          g_out = (b_in + state.key.g + offsetUsed[1]) % 26;
+          b_out = (25 - r_in + state.key.b + offsetUsed[2]) % 26;
+
+          r_step = `(${g_in} + ${state.key.r} + ${offsetUsed[0]}) mod 26 = ${g_in + state.key.r + offsetUsed[0]} mod 26 = ${r_out} (${valToChar(r_out)})`;
+          g_step = `(${b_in} + ${state.key.g} + ${offsetUsed[1]}) mod 26 = ${b_in + state.key.g + offsetUsed[1]} mod 26 = ${g_out} (${valToChar(g_out)})`;
+          b_step = `(25 - ${r_in} + ${state.key.b} + ${offsetUsed[2]}) mod 26 = ${25 - r_in + state.key.b + offsetUsed[2]} mod 26 = ${b_out} (${valToChar(b_out)})`;
+        }
+
+        prevCipher = [r_out, g_out, b_out];
+
+        const cChars = valToChar(r_out) + valToChar(g_out) + valToChar(b_out);
+        cipherText += cChars;
+
+        const cipherColor = toRGB(r_out, g_out, b_out);
+        cipherPalettes.push({
+          blockIdx,
+          chars: cChars,
+          rgb: cipherColor,
+          vals: [r_out, g_out, b_out]
+        });
+
+        auditRows.push({
+          blockIdx,
+          inputChars: bChars,
+          inputVals: [r_in, g_in, b_in],
+          offset: offsetUsed,
+          steps: { r: r_step, g: g_step, b: b_step },
+          outputChars: cChars,
+          outputVals: [r_out, g_out, b_out],
+          color: cipherColor
+        });
+      }
+
+      state.currentOutput = cipherText;
+      state.auditLog = auditRows;
+
+      // Render Output
+      elements.textOutput.innerHTML = `<span class="text-emerald-300 font-mono tracking-widest">${cipherText}</span>`;
+      elements.outputMetaInfo.innerText = `${cipherText.length} 密文字母`;
+      elements.outputStatStr.innerText = `CBC 連鎖已串聯 ${blockCount} 組區塊`;
+
+      // Render Chunks
+      renderChunksDisplay(chunks);
+
+      // Render Palettes
+      renderPaletteStrips(plainPalettes, cipherPalettes);
+
+      // Render Swatch Cards
+      renderSwatchCards(plainPalettes, cipherPalettes);
+
+      // Render Audit Table
+      renderAuditTable(auditRows, 'encrypt');
+    }
+
+    // Process Decryption
+    function processDecryption(cleanLetters, rawText) {
+      elements.sanitizeAlert.classList.add('hidden');
+
+      if (!cleanLetters) {
+        resetOutputs();
+        elements.errorAlert.classList.add('hidden');
+        elements.inputMetaInfo.innerText = "0 密文字母";
+        return;
+      }
+
+      elements.inputMetaInfo.innerText = `${cleanLetters.length} 密文字母 | ${Math.floor(cleanLetters.length / 3)} 區塊`;
+
+      // Validation: length must be multiple of 3
+      if (cleanLetters.length % 3 !== 0) {
+        elements.errorAlert.classList.remove('hidden');
+        elements.errorMsg.innerText = `密文長度必須為 3 的倍數（RGB 3 通道），目前為 ${cleanLetters.length} 字元（尚缺 ${3 - (cleanLetters.length % 3)} 字元）。`;
+        resetOutputs();
+        return;
+      } else {
+        elements.errorAlert.classList.add('hidden');
+      }
+
+      const blockCount = cleanLetters.length / 3;
+      let restoredText = '';
+      let prevCipher = [0, 0, 0];
+      const auditRows = [];
+      const cipherPalettes = [];
+      const restoredPalettes = [];
+      const chunks = [];
+
+      for (let i = 0; i < blockCount; i++) {
+        const blockIdx = i + 1;
+        const cChars = cleanLetters.slice(i * 3, i * 3 + 3);
+        chunks.push(cChars);
+
+        const r_p = charToVal(cChars[0]);
+        const g_p = charToVal(cChars[1]);
+        const b_p = charToVal(cChars[2]);
+
+        const cipherColor = toRGB(r_p, g_p, b_p);
+        cipherPalettes.push({
+          blockIdx,
+          chars: cChars,
+          rgb: cipherColor,
+          vals: [r_p, g_p, b_p]
+        });
+
+        // Offset from previous cipher block
+        const offsetUsed = (blockIdx === 1) ? [0, 0, 0] : [...prevCipher];
+
+        // Decryption Formula:
+        // R_n = (25 - B'_n + K_B + offset_B) mod 26
+        // G_n = (R'_n - K_R - offset_R + 52) mod 26
+        // B_n = (G'_n - K_G - offset_G + 52) mod 26
+        const r_raw = 25 - b_p + state.key.b + offsetUsed[2];
+        const r_orig = ((r_raw % 26) + 26) % 26;
+
+        const g_raw = r_p - state.key.r - offsetUsed[0] + 52;
+        const g_orig = ((g_raw % 26) + 26) % 26;
+
+        const b_raw = g_p - state.key.g - offsetUsed[1] + 52;
+        const b_orig = ((b_raw % 26) + 26) % 26;
+
+        const r_step = `(25 - ${b_p} + ${state.key.b} + ${offsetUsed[2]}) mod 26 = ${r_raw} mod 26 = ${r_orig} (${valToChar(r_orig)})`;
+        const g_step = `(${r_p} - ${state.key.r} - ${offsetUsed[0]} + 52) mod 26 = ${g_raw} mod 26 = ${g_orig} (${valToChar(g_orig)})`;
+        const b_step = `(${g_p} - ${state.key.g} - ${offsetUsed[1]} + 52) mod 26 = ${b_raw} mod 26 = ${b_orig} (${valToChar(b_orig)})`;
+
+        // Save current cipher block for chaining next block
+        prevCipher = [r_p, g_p, b_p];
+
+        const origChars = valToChar(r_orig) + valToChar(g_orig) + valToChar(b_orig);
+        restoredText += origChars;
+
+        const origColor = toRGB(r_orig, g_orig, b_orig);
+        restoredPalettes.push({
+          blockIdx,
+          chars: origChars,
+          rgb: origColor,
+          vals: [r_orig, g_orig, b_orig]
+        });
+
+        auditRows.push({
+          blockIdx,
+          inputChars: cChars,
+          inputVals: [r_p, g_p, b_p],
+          offset: offsetUsed,
+          steps: { r: r_step, g: g_step, b: b_step },
+          outputChars: origChars,
+          outputVals: [r_orig, g_orig, b_orig],
+          color: origColor
+        });
+      }
+
+      state.currentOutput = restoredText;
+      state.auditLog = auditRows;
+
+      // Check for padding 'X' at the end
+      if (restoredText.endsWith('XX')) {
+        elements.decryptPaddingNotice.classList.remove('hidden');
+        elements.decryptPaddingText.innerHTML = `偵測到結尾包含 2 個填充字元 <strong>'XX'</strong>。去除填充之原始可能明文為：<span class="text-white font-bold tracking-wider">${restoredText.slice(0, -2)}</span>`;
+      } else if (restoredText.endsWith('X')) {
+        elements.decryptPaddingNotice.classList.remove('hidden');
+        elements.decryptPaddingText.innerHTML = `偵測到結尾包含 1 個填充字元 <strong>'X'</strong>。去除填充之原始可能明文為：<span class="text-white font-bold tracking-wider">${restoredText.slice(0, -1)}</span>`;
+      } else {
+        elements.decryptPaddingNotice.classList.add('hidden');
+      }
+
+      // Render Output
+      elements.textOutput.innerHTML = `<span class="text-cyan-300 font-mono tracking-widest">${restoredText}</span>`;
+      elements.outputMetaInfo.innerText = `${restoredText.length} 還原明文字母`;
+      elements.outputStatStr.innerText = `CBC 逆向解鎖完成（共 ${blockCount} 組區塊）`;
+
+      // Render Chunks
+      renderChunksDisplay(chunks);
+
+      // Render Palettes (Top: Ciphertext, Bottom: Restored Plaintext)
+      renderPaletteStrips(cipherPalettes, restoredPalettes);
+
+      // Render Swatch Cards
+      renderSwatchCards(cipherPalettes, restoredPalettes);
+
+      // Render Audit Table
+      renderAuditTable(auditRows, 'decrypt');
+    }
+
+    // Reset Outputs when input is empty or invalid
+    function resetOutputs() {
+      elements.textOutput.innerHTML = `<span class="text-slate-600 font-normal text-sm select-none">運算結果將在此即時顯示...</span>`;
+      elements.outputMetaInfo.innerText = `0 字母`;
+      elements.outputStatStr.innerText = `CBC 狀態: 等待輸入`;
+      elements.blockChunksDisplay.innerHTML = `<span class="text-slate-600 italic">無分組資料</span>`;
+      elements.paletteStrip1.innerHTML = `<div class="w-full h-full flex items-center justify-center text-xs text-slate-600 italic">尚無色塊資料</div>`;
+      elements.paletteStrip2.innerHTML = `<div class="w-full h-full flex items-center justify-center text-xs text-slate-600 italic">尚無色塊資料</div>`;
+      elements.swatchCardsContainer.innerHTML = `<div class="col-span-full py-8 text-center text-xs text-slate-500 italic">請輸入文字以查看各區塊色彩細節</div>`;
+      elements.auditTableBody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500 italic">尚未進行運算</td></tr>`;
+      state.currentOutput = '';
+      state.auditLog = [];
+    }
+
+    // Render 3-Letter Block Chunks display
+    function renderChunksDisplay(chunks) {
+      if (!chunks.length) {
+        elements.blockChunksDisplay.innerHTML = `<span class="text-slate-600 italic">無分組資料</span>`;
+        return;
+      }
+      elements.blockChunksDisplay.innerHTML = chunks.map((c, i) => `
+        <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-800/90 border border-slate-700 text-slate-200">
+          <span class="text-[10px] text-slate-400 mr-1">#${i+1}</span>
+          <strong>${c}</strong>
+        </span>
+      `).join('');
+    }
+
+    // Render continuous horizontal palette strips
+    function renderPaletteStrips(strip1, strip2) {
+      const renderStrip = (data, container) => {
+        if (!data || !data.length) {
+          container.innerHTML = `<div class="w-full h-full flex items-center justify-center text-xs text-slate-600 italic">尚無色塊資料</div>`;
+          return;
+        }
+        container.innerHTML = data.map((b) => `
+          <div class="h-full flex-1 flex flex-col items-center justify-center relative group transition-all cursor-pointer"
+               style="background-color: ${b.rgb.css}; min-width: 32px;"
+               onclick="copyToClipboard('${b.rgb.hex}', '已複製色碼 ${b.rgb.hex}')"
+               title="區塊 #${b.blockIdx}: [${b.chars}] ${b.rgb.hex} (RGB: ${b.rgb.r}, ${b.rgb.g}, ${b.rgb.b})">
+            <span class="text-[10px] font-bold font-mono px-1 py-0.5 rounded bg-black/60 text-white shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+              ${b.chars}
+            </span>
+          </div>
+        `).join('');
+      };
+
+      renderStrip(strip1, elements.paletteStrip1);
+      renderStrip(strip2, elements.paletteStrip2);
+    }
+
+    // Render interactive block color cards
+    function renderSwatchCards(topData, bottomData) {
+      if (!bottomData.length) {
+        elements.swatchCardsContainer.innerHTML = `<div class="col-span-full py-8 text-center text-xs text-slate-500 italic">請輸入文字以查看各區塊色彩細節</div>`;
+        return;
+      }
+
+      elements.swatchCardsContainer.innerHTML = bottomData.map((b, i) => {
+        const topBlock = topData[i];
+        const isEnc = state.mode === 'encrypt';
+        const inTag = isEnc ? '明文' : '密文';
+        const outTag = isEnc ? '混色密文' : '還原明文';
+
+        return `
+          <div class="rounded-xl bg-slate-950/80 border border-slate-800 p-3 flex flex-col justify-between space-y-2.5 hover:border-slate-600 transition-all group">
+            <div class="flex items-center justify-between text-[11px] font-mono text-slate-400">
+              <span class="font-bold text-slate-200">區塊 #${b.blockIdx}</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">${b.chars}</span>
+            </div>
+
+            <!-- Color Swatch Rectangle -->
+            <div class="relative w-full h-14 rounded-lg overflow-hidden border border-slate-700/60 shadow-inner flex items-center justify-center cursor-pointer transition-transform group-hover:scale-[1.02]"
+                 style="background-color: ${b.rgb.css};"
+                 onclick="copyToClipboard('${b.rgb.hex}', '已複製色碼 ${b.rgb.hex}')"
+                 title="點擊複製 HEX 色碼">
+              <div class="px-2 py-0.5 rounded bg-black/60 backdrop-blur-sm text-[11px] font-mono font-bold text-white shadow">
+                ${b.rgb.hex}
+              </div>
+            </div>
+
+            <!-- Channels & Values Breakdown -->
+            <div class="space-y-1 text-[11px] font-mono">
+              <div class="flex items-center justify-between text-slate-300">
+                <span class="text-rose-400">R: ${b.rgb.r} (${b.vals[0]})</span>
+                <span class="text-emerald-400">G: ${b.rgb.g} (${b.vals[1]})</span>
+                <span class="text-sky-400">B: ${b.rgb.b} (${b.vals[2]})</span>
+              </div>
+              <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800/80">
+                <span>原組: <strong class="text-slate-200">${topBlock ? topBlock.chars : '-'}</strong></span>
+                <span>→ 轉為: <strong class="text-emerald-400">${b.chars}</strong></span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Step-by-step Audit Table
+    function renderAuditTable(rows, mode) {
+      if (!rows.length) {
+        elements.auditTableBody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500 italic">尚未進行運算</td></tr>`;
+        return;
+      }
+
+      elements.auditTableBody.innerHTML = rows.map((r) => {
+        const offsetText = (r.blockIdx === 1) 
+          ? `<span class="text-slate-400 italic">無前饋 (0, 0, 0)</span>` 
+          : `<span class="text-amber-400 font-semibold">(R'=${r.offset[0]}, G'=${r.offset[1]}, B'=${r.offset[2]})</span>`;
+
+        return `
+          <tr class="hover:bg-slate-900/60 transition-colors border-b border-slate-800/50">
+            <td class="py-3 px-3 text-center font-bold text-slate-300">#${r.blockIdx}</td>
+            <td class="py-3 px-4">
+              <div class="font-bold text-white tracking-widest text-sm">${r.inputChars}</div>
+              <div class="text-[10px] text-slate-400">[${r.inputChars.split('').join(', ')}]</div>
+            </td>
+            <td class="py-3 px-4">
+              <div class="text-slate-300">(${r.inputVals.join(', ')})</div>
+              <div class="text-[10px] text-slate-400">R=${r.inputVals[0]}, G=${r.inputVals[1]}, B=${r.inputVals[2]}</div>
+            </td>
+            <td class="py-3 px-4 text-xs">${offsetText}</td>
+            <td class="py-3 px-4 text-[11px] leading-relaxed space-y-1">
+              <div class="flex items-center gap-1.5">
+                <span class="w-4 text-rose-400 font-bold">R:</span>
+                <span class="text-slate-200">${r.steps.r}</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-4 text-emerald-400 font-bold">G:</span>
+                <span class="text-slate-200">${r.steps.g}</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-4 text-sky-400 font-bold">B:</span>
+                <span class="text-slate-200">${r.steps.b}</span>
+              </div>
+            </td>
+            <td class="py-3 px-4 text-center">
+              <div class="inline-block px-2.5 py-1 rounded bg-slate-900 border border-slate-700 font-bold text-emerald-300 text-sm tracking-widest shadow">
+                ${r.outputChars}
+              </div>
+            </td>
+            <td class="py-3 px-4 text-center">
+              <div class="flex items-center justify-center gap-2">
+                <span class="w-6 h-6 rounded-md shadow border border-slate-600 inline-block shrink-0" style="background-color: ${r.color.css};"></span>
+                <div class="text-left text-[10px]">
+                  <div class="font-bold text-slate-200">${r.color.hex}</div>
+                  <div class="text-slate-400">${r.color.r},${r.color.g},${r.color.b}</div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Export Color Palette Strip as PNG
+    function exportCanvasImage() {
+      if (!state.auditLog.length) {
+        showToast('目前尚無色彩區塊可匯出', true);
+        return;
+      }
+
+      const canvas = elements.exportCanvas;
+      const ctx = canvas.getContext('2d');
+      const numBlocks = state.auditLog.length;
+      
+      const blockWidth = 100;
+      const height = 220;
+      const width = Math.max(numBlocks * blockWidth, 400);
+
+      canvas.width = width;
+      canvas.height = height;
+
+      // Dark background
+      ctx.fillStyle = '#0a0f1d';
+      ctx.fillRect(0, 0, width, height);
+
+      // Title & Subtitle
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px Inter, sans-serif';
+      ctx.fillText(`RGB Pixel Blending Cipher — ${state.mode.toUpperCase()}`, 20, 30);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '12px monospace';
+      ctx.fillText(`Input: "${elements.textInput.value}" | Output: "${state.currentOutput}"`, 20, 50);
+
+      // Draw blocks
+      const startY = 70;
+      const colorBoxHeight = 80;
+      const actualBlockWidth = width / numBlocks;
+
+      for (let i = 0; i < numBlocks; i++) {
+        const item = state.auditLog[i];
+        const x = i * actualBlockWidth;
+
+        // Draw color rectangle
+        ctx.fillStyle = item.color.css;
+        ctx.fillRect(x, startY, actualBlockWidth, colorBoxHeight);
+
+        // Draw outline
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.strokeRect(x, startY, actualBlockWidth, colorBoxHeight);
+
+        // Draw text info under rectangle
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 14px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(item.outputChars, x + actualBlockWidth / 2, startY + colorBoxHeight + 24);
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = '11px monospace';
+        ctx.fillText(item.color.hex, x + actualBlockWidth / 2, startY + colorBoxHeight + 42);
+      }
+
+      // Download
+      const link = document.createElement('a');
+      link.download = `pixel-cipher-${state.mode}-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+
+      showToast('已成功匯出像素色條 PNG 圖片！');
+    }
+
+    // Copy Output string
+    function copyOutput() {
+      if (!state.currentOutput) {
+        showToast('尚無輸出內容可複製', true);
+        return;
+      }
+      copyToClipboard(state.currentOutput, `已複製輸出：${state.currentOutput}`);
+    }
+
+    // Copy Audit JSON
+    function copyAuditJSON() {
+      if (!state.auditLog.length) {
+        showToast('尚無審計資料可複製', true);
+        return;
+      }
+      const dataStr = JSON.stringify({
+        mode: state.mode,
+        input: elements.textInput.value,
+        output: state.currentOutput,
+        keys: state.key,
+        timestamp: new Date().toISOString(),
+        blocks: state.auditLog
+      }, null, 2);
+
+      copyToClipboard(dataStr, '已複製完整審計 JSON 格式');
+    }
+
+    // Helper: Copy string to clipboard with fallback
+    function copyToClipboard(text, successMsg = '已複製到剪貼簿') {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast(successMsg);
+        }).catch(() => {
+          fallbackCopy(text, successMsg);
+        });
+      } else {
+        fallbackCopy(text, successMsg);
+      }
+    }
+
+    function fallbackCopy(text, successMsg) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast(successMsg);
+      } catch (err) {
+        showToast('複製失敗，請手動複製', true);
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // Show toast message
+    let toastTimeout = null;
+    function showToast(msg, isWarn = false) {
+      elements.toastMsg.innerText = msg;
+      if (isWarn) {
+        elements.toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-900/95 border border-rose-500/50 text-rose-300 shadow-2xl shadow-rose-950";
+      } else {
+        elements.toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-900/95 border border-emerald-500/50 text-emerald-300 shadow-2xl shadow-emerald-950";
+      }
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        elements.toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-900/95 border border-emerald-500/40 text-emerald-300 shadow-2xl shadow-emerald-950";
+      }, 2500);
+    }
+
+    // Modal / Spec Scroll helper
+    function openAlgoInfo() {
+      const el = document.querySelector('section:last-of-type');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  </script>
+</body>
+</html>
