@@ -6,10 +6,15 @@
 
 一套結合**現代對稱式分組密碼學（Block Cipher）**、**CBC 像素反饋連鎖擴散機制**與**可視化資訊隱藏（Visual Steganography）**概念的前端密碼產生器與審計分析工具。
 
+🌐 **線上即時體驗（GitHub Pages）**：[https://ericlin241.github.io/rgb-pixel-blending-cipher/](https://ericlin241.github.io/rgb-pixel-blending-cipher/)
+
 ---
 
 ## 🌟 核心特色
 
+0. **支援深淺色主題切換（Dark / Light Mode）**
+   - 支援系統偏好預設偵測與 `localStorage` 狀態持久化。
+   - 頂部導航列一鍵切換日光淺色 / 極客深色模式，色塊與畫布自動適配對比度。
 1. **Pixel-CBC 密碼連鎖混色演算法**
    - **字元與數值映射**：英文字母 `A~Z` 精確映射至數值 `0~25`。
    - **通道置換與非線性混淆**：將明文 3 字母映射為 $(R, G, B)$ 通道，並在加密時進行輪替置換 ($G \to R'$, $B \to G'$, 補數 $R \to B'$)。
